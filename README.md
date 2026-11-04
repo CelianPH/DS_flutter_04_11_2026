@@ -11,6 +11,7 @@ Application Flutter de connexion qui authentifie les utilisateurs auprès d'une 
 - Écran de profil : nom, email et rôle
 - Messages d'erreur distincts pour les identifiants incorrects et les problèmes techniques (API éteinte, délai dépassé, réponse invalide)
 - Affichage adapté aux différentes tailles d'écran
+- Session conservée grâce à un token : l'utilisateur reste connecté sans ressaisir son mot de passe, et la déconnexion supprime le token
 
 **API Node.js**
 - Endpoint `POST /login`, qui accepte le JSON et les formulaires
@@ -92,7 +93,8 @@ Réponse en cas de succès (code HTTP 200) :
   "firstName": "Jean",
   "lastName": "Dupont",
   "email": "jean@example.com",
-  "role": 2
+  "role": 2,
+  "token": "eyJhbGciOiJIUzI1NiIs..."
 }
 ```
 
@@ -104,6 +106,25 @@ Réponse en cas d'erreur (code HTTP 400) :
   "message": "Error"
 }
 ```
+
+### `GET /profile`
+
+Route protégée : elle renvoie le profil de l'utilisateur à qui appartient le token.
+
+```
+curl.exe --ssl-no-revoke https://127.0.0.1:3000/profile -H "Authorization: Bearer VOTRE_TOKEN"
+```
+
+La réponse en cas de succès reprend celle de `/login`, sans le token. Si le token est absent, invalide ou expiré (code HTTP 401) :
+
+```json
+{
+  "status": 401,
+  "message": "Unauthorized"
+}
+```
+
+Le token est un JWT signé, valable 1 heure. Par défaut, le secret de signature est généré à chaque démarrage de l'API : les tokens existants deviennent invalides après un redémarrage. Pour les conserver, définissez la variable d'environnement `JWT_SECRET`.
 
 ### Ajouter un utilisateur
 
@@ -119,6 +140,7 @@ npm run hash -- "monMotDePasse"
 - Aucun mot de passe n'est stocké en clair : l'API conserve uniquement des hash bcrypt, vérifiés côté serveur.
 - La réponse est la même pour un email inconnu et pour un mauvais mot de passe, afin de ne pas révéler quels comptes existent.
 - La clé privée du certificat n'est pas versionnée.
+- Le token est stocké avec `flutter_secure_storage`. Dans un navigateur, cette protection est moins forte que sur un téléphone : il est chiffré, mais il n'existe pas de coffre-fort système comme sur Android ou iOS.
 
 ## Tests
 

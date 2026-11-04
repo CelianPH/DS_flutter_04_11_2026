@@ -1,9 +1,12 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart'; // Importez LoginScreen
+
+import 'screens/splash_screen.dart';
 
 void main() {
+  // Nécessaire pour lire le token stocké avant d'afficher le premier écran
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const LoginApp());
 }
 
@@ -18,7 +21,7 @@ class LoginApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const LoginScreen(title: 'Page de Connexion'),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -10,7 +10,11 @@ import '../widgets/responsive_content.dart';
 import 'profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.title, this.authService});
+  const LoginScreen({
+    super.key,
+    this.title = 'Page de Connexion',
+    this.authService,
+  });
 
   final String title;
 
@@ -53,9 +57,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (user != null) {
           // Connexion réussie : on affiche le profil renvoyé par l'API
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ProfileScreen(user: user)),
+            MaterialPageRoute(
+              builder: (context) =>
+                  ProfileScreen(user: user, authService: _authService),
+            ),
           );
         } else {
           // Identifiants refusés par l'API
