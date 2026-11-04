@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/user.dart';
+import '../widgets/profile_info_tile.dart';
+import '../widgets/responsive_content.dart';
 
 class ProfileScreen extends StatelessWidget {
   final User user;
@@ -24,25 +26,23 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: ResponsiveContent(
         child: Column(
           children: <Widget>[
-            // Affichage des informations du profil
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Nom'),
-              subtitle: Text('${user.firstName} ${user.lastName}'),
+            ProfileInfoTile(
+              icon: Icons.person,
+              label: 'Nom',
+              value: '${user.firstName} ${user.lastName}',
             ),
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: const Text('Email'),
-              subtitle: Text(user.email),
+            ProfileInfoTile(
+              icon: Icons.email,
+              label: 'Email',
+              value: user.email,
             ),
-            ListTile(
-              leading: const Icon(Icons.security),
-              title: const Text('Rôle'),
-              subtitle: Text(user.roleLabel),
+            ProfileInfoTile(
+              icon: Icons.security,
+              label: 'Rôle',
+              value: user.roleLabel,
             ),
             const SizedBox(height: 24.0),
             ElevatedButton(
