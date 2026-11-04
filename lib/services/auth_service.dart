@@ -1,49 +1,67 @@
 // lib/services/auth_service.dart
 
+import 'dart:async';
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
+
+import 'package:http/http.dart' as http;
+
+import '../models/user.dart';
+import 'api_config.dart';
+
+/// Levée quand l'API est injoignable ou que sa réponse est inexploitable.
+/// Ce cas est différent d'identifiants incorrects.
+class AuthException implements Exception {
+  final String message;
+
+  const AuthException(this.message);
+
+  @override
+  String toString() => 'AuthException: $message';
+}
 
 class AuthService {
-  // Méthode de hachage des mots de passe
-  String hashPassword(String password) {
-    final bytes = utf8.encode(password); // Convertit le mot de passe en bytes
-    final digest = sha256.convert(bytes); // Applique SHA-256
-    return digest.toString(); // Retourne le hachage en chaîne hexadécimale
-  }
+  static const Duration _timeout = Duration(seconds: 10);
 
-  // Tableau associatif local des utilisateurs avec mots de passe hachés
-  final Map<String, Map<String, dynamic>> _users = {
-    'jean@example.com': {
-      'password': '', // Sera initialisé dans le constructeur
-      'firstName': 'Jean',
-      'lastName': 'DUPONT',
-      'role': 'User'
-    },
-    'julie@example.com': {
-      'password': '',
-      'firstName': 'Julie',
-      'lastName': 'MARTIN',
-      'role': 'Admin',
-    },
-  };
+  final http.Client _client;
 
-  AuthService() {
-    // Initialiser les mots de passe hachés
-    _users['jean@example.com']!['password'] = hashPassword('userpass');
-    _users['julie@example.com']!['password'] = hashPassword('adminpass');
-  }
+  /// Le client peut être remplacé dans les tests pour simuler l'API.
+  AuthService({http.Client? client}) : _client = client ?? http.Client();
 
-  // Méthode de connexion
-  Future<Map<String, dynamic>?> login(String email, String password) async {
-    // Simule un délai pour imiter un appel réseau
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (_users.containsKey(email)) {
-      String hashedPassword = hashPassword(password);
-      if (_users[email]!['password'] == hashedPassword) {
-        return _users[email];
-      }
+  /// Envoie les identifiants à l'API.
+  ///
+  /// Renvoie l'utilisateur si la connexion réussit, `null` si les identifiants
+  /// sont incorrects, et lève une [AuthException] en cas de problème technique.
+  Future<User?> login(String email, String password) async {
+    final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/login'),
+            body: {'email': email, 'password': password},
+          )
+          .timeout(_timeout);
+    } on TimeoutException {
+      throw const AuthException('Le serveur ne répond pas');
+    } on Exception {
+      // SocketException ou ClientException selon la plateforme.
+      throw const AuthException('Impossible de joindre le serveur');
     }
-    return null;
+
+    try {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      switch (data['status']) {
+        case 200:
+          return User.fromJson(data);
+        case 400:
+          return null;
+        default:
+          throw const AuthException('Erreur du serveur');
+      }
+    } on FormatException {
+      throw const AuthException('Réponse du serveur invalide');
+    } on TypeError {
+      // Champ manquant ou de mauvais type dans le JSON.
+      throw const AuthException('Réponse du serveur invalide');
+    }
   }
 }

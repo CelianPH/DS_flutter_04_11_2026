@@ -103,3 +103,27 @@ test('route inconnue : erreur 404 en JSON', async () => {
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { status: 404, message: 'Not Found' });
 });
+
+test('CORS : autorise une page Flutter web servie en local', async () => {
+  const response = await fetch(`${baseUrl}/login`, {
+    method: 'POST',
+    headers: { Origin: 'http://localhost:51234' },
+    body: new URLSearchParams({ email: 'jean@example.com', password: 'userpass' }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(
+    response.headers.get('access-control-allow-origin'),
+    'http://localhost:51234',
+  );
+});
+
+test('CORS : refuse une page venant d\'un autre site', async () => {
+  const response = await fetch(`${baseUrl}/login`, {
+    method: 'POST',
+    headers: { Origin: 'https://site-externe.example' },
+    body: new URLSearchParams({ email: 'jean@example.com', password: 'userpass' }),
+  });
+
+  assert.equal(response.headers.get('access-control-allow-origin'), null);
+});

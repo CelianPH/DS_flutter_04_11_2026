@@ -43,10 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => ProfileScreen(
-              email: email,
-              firstName: user['firstName'],
-              lastName: user['lastName'],
-              role: user['role'],
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role.toString(),
             ),
           ),
         );

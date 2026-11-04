@@ -1,7 +1,9 @@
 const express = require('express');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const users = require('./data/users.json');
 
+const LOCAL_ORIGIN_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PASSWORD_BYTES = 72; // bcrypt ignore tout ce qui dépasse 72 octets
@@ -26,6 +28,7 @@ function isValidInput(email, password) {
 
 const app = express();
 
+app.use(cors({ origin: LOCAL_ORIGIN_REGEX }));
 // Accepte les deux formats courants : JSON et formulaire (celui du package http).
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
