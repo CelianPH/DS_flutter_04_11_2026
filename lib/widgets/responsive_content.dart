@@ -1,6 +1,7 @@
 // lib/widgets/responsive_content.dart
 
 import 'package:flutter/material.dart';
+
 class ResponsiveContent extends StatelessWidget {
   final Widget child;
 

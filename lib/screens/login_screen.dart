@@ -10,11 +10,7 @@ import '../widgets/responsive_content.dart';
 import 'profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({
-    super.key,
-    this.title = 'Page de Connexion',
-    this.authService,
-  });
+  const LoginScreen({super.key, this.title = 'Connexion', this.authService});
 
   final String title;
 
@@ -91,28 +87,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: ResponsiveContent(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              EmailField(controller: _emailController),
-              const SizedBox(height: 16.0),
-              PasswordField(controller: _passwordController),
-              const SizedBox(height: 24.0),
-              // Bouton de Connexion ou Indicateur de Chargement
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Se connecter'),
-                    ),
-            ],
+      body: SafeArea(
+        child: ResponsiveContent(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Icon(
+                  Icons.lock_person_outlined,
+                  size: 56.0,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  widget.title,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Entrez votre email et votre mot de passe.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 32.0),
+                EmailField(controller: _emailController),
+                const SizedBox(height: 16.0),
+                PasswordField(controller: _passwordController),
+                const SizedBox(height: 24.0),
+                // Le chargement s'affiche dans le bouton, désactivé entre-temps
+                FilledButton(
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20.0,
+                          height: 20.0,
+                          child: CircularProgressIndicator(strokeWidth: 2.0),
+                        )
+                      : const Text('Se connecter'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

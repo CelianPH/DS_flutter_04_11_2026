@@ -32,40 +32,51 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil de l\'Utilisateur'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+      body: SafeArea(
+        child: ResponsiveContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Center(
+                child: CircleAvatar(
+                  radius: 40.0,
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                  child: Text(
+                    '${user.firstName[0]}${user.lastName[0]}',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                '${user.firstName} ${user.lastName}',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 24.0),
+              ProfileInfoTile(
+                icon: Icons.mail_outline,
+                label: 'Email',
+                value: user.email,
+              ),
+              ProfileInfoTile(
+                icon: Icons.badge_outlined,
+                label: 'Rôle',
+                value: user.roleLabel,
+              ),
+              const SizedBox(height: 24.0),
+              OutlinedButton(
+                onPressed: () => _logout(context),
+                child: const Text('Se déconnecter'),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: ResponsiveContent(
-        child: Column(
-          children: <Widget>[
-            ProfileInfoTile(
-              icon: Icons.person,
-              label: 'Nom',
-              value: '${user.firstName} ${user.lastName}',
-            ),
-            ProfileInfoTile(
-              icon: Icons.email,
-              label: 'Email',
-              value: user.email,
-            ),
-            ProfileInfoTile(
-              icon: Icons.security,
-              label: 'Rôle',
-              value: user.roleLabel,
-            ),
-            const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: () => _logout(context),
-              child: const Text('Se déconnecter'),
-            ),
-          ],
         ),
       ),
     );

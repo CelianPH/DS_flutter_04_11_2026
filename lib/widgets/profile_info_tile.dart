@@ -1,6 +1,7 @@
 // lib/widgets/profile_info_tile.dart
 
 import 'package:flutter/material.dart';
+
 class ProfileInfoTile extends StatelessWidget {
   final IconData icon;
   final String label;

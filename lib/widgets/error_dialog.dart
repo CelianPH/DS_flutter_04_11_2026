@@ -1,6 +1,7 @@
 // lib/widgets/error_dialog.dart
 
 import 'package:flutter/material.dart';
+
 class ErrorDialog extends StatelessWidget {
   final String message;
 

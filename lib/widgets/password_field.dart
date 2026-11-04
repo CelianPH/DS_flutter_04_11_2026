@@ -1,6 +1,7 @@
 // lib/widgets/password_field.dart
 
 import 'package:flutter/material.dart';
+
 class PasswordField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -12,8 +13,7 @@ class PasswordField extends StatelessWidget {
       controller: controller,
       decoration: const InputDecoration(
         labelText: 'Mot de passe',
-        border: OutlineInputBorder(),
-        icon: Icon(Icons.lock),
+        prefixIcon: Icon(Icons.lock_outline),
       ),
       obscureText: true,
       validator: (value) {

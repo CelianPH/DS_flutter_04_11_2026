@@ -1,6 +1,7 @@
 // lib/widgets/email_field.dart
 
 import 'package:flutter/material.dart';
+
 class EmailField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -12,8 +13,7 @@ class EmailField extends StatelessWidget {
       controller: controller,
       decoration: const InputDecoration(
         labelText: 'Email',
-        border: OutlineInputBorder(),
-        icon: Icon(Icons.mail),
+        prefixIcon: Icon(Icons.mail_outline),
       ),
       keyboardType: TextInputType.emailAddress,
       validator: (value) {
