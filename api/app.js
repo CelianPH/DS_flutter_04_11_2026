@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const users = require('./data/users.json');
 
 const LOCAL_ORIGIN_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
@@ -10,6 +12,13 @@ const MAX_PASSWORD_BYTES = 72; // bcrypt ignore tout ce qui dépasse 72 octets
 
 // Réponse d'erreur imposée par le contrat de l'API.
 const ERROR_RESPONSE = { status: 400, message: 'Error' };
+const UNAUTHORIZED_RESPONSE = { status: 401, message: 'Unauthorized' };
+
+// Secret qui signe les tokens. Sans JWT_SECRET, il est généré au démarrage :
+// aucun secret n'est stocké dans le dépôt, mais les tokens ne survivent pas
+// à un redémarrage de l'API.
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const TOKEN_LIFETIME_SECONDS = 3600;
 
 // Hash comparé quand l'email est inconnu : le temps de réponse reste le même
 // que pour un email existant, ce qui évite de révéler quels comptes existent.
@@ -24,6 +33,48 @@ function isValidInput(email, password) {
     password.length > 0 &&
     Buffer.byteLength(password, 'utf8') <= MAX_PASSWORD_BYTES
   );
+}
+
+// Réponse de succès : le profil, sans le hash du mot de passe.
+function successResponse(user) {
+  return {
+    status: 200,
+    message: 'Success',
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+  };
+}
+
+function createToken(user) {
+  return jwt.sign({}, JWT_SECRET, {
+    algorithm: 'HS256',
+    subject: String(user.id),
+    expiresIn: TOKEN_LIFETIME_SECONDS,
+  });
+}
+
+// Laisse passer la requête uniquement si elle contient un token valide.
+function requireToken(req, res, next) {
+  const [scheme, token] = (req.headers.authorization ?? '').split(' ');
+
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json(UNAUTHORIZED_RESPONSE);
+  }
+
+  try {
+    const { sub } = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    req.user = users.find((candidate) => String(candidate.id) === sub);
+  } catch {
+    return res.status(401).json(UNAUTHORIZED_RESPONSE);
+  }
+
+  if (!req.user) {
+    return res.status(401).json(UNAUTHORIZED_RESPONSE);
+  }
+  return next();
 }
 
 const app = express();
@@ -51,15 +102,11 @@ app.post('/login', async (req, res) => {
     return res.status(400).json(ERROR_RESPONSE);
   }
 
-  return res.status(200).json({
-    status: 200,
-    message: 'Success',
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    role: user.role,
-  });
+  return res.status(200).json({ ...successResponse(user), token: createToken(user) });
+});
+
+app.get('/profile', requireToken, (req, res) => {
+  res.status(200).json(successResponse(req.user));
 });
 
 // Route inconnue : on reste en JSON plutôt que de renvoyer une page HTML.
