@@ -5,9 +5,10 @@ import '../services/auth_service.dart'; // Importez AuthService
 import 'profile_screen.dart'; // Importez ProfileScreen
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.title});
+  const LoginScreen({super.key, required this.title, this.authService});
 
   final String title;
+  final AuthService? authService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  final AuthService _authService = AuthService(); // Instanciation d'AuthService
+  late final AuthService _authService = widget.authService ?? AuthService();
 
   bool _isLoading = false; // État de chargement
 
@@ -32,41 +33,46 @@ class _LoginScreenState extends State<LoginScreen> {
       String email = _emailController.text.trim();
       String password = _passwordController.text.trim();
 
-      final user = await _authService.login(email, password);
-      setState(() {
-        _isLoading = false;
-      });
+      try {
+        final user = await _authService.login(email, password);
+        if (!mounted) return;
 
-      if (user != null) {
-        // Connexion réussie avec informations supplémentaires
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProfileScreen(
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role.toString(),
+        if (user != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfileScreen(user: user),
             ),
-          ),
-        );
-      } else {
-        // Connexion échouée
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Erreur'),
-            content: const Text('Email ou mot de passe incorrect'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+          );
+        } else {
+          _showError('Email ou mot de passe incorrect');
+        }
+      } on AuthException catch (error) {
+        if (mounted) _showError(error.message);
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Erreur'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

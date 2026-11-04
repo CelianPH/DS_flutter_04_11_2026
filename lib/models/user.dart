@@ -15,6 +15,16 @@ class User {
     required this.email,
     required this.role,
   });
+  String get roleLabel {
+    switch (role) {
+      case 1:
+        return 'Admin';
+      case 2:
+        return 'User';
+      default:
+        return 'Inconnu';
+    }
+  }
 
   /// Construit un utilisateur à partir de la réponse JSON de l'API.
   factory User.fromJson(Map<String, dynamic> json) {
